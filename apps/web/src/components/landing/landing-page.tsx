@@ -138,16 +138,13 @@ export function LandingPage() {
             generate reports -- all without switching tools.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
-            <Link
-              className={cn(buttonVariants({ size: "lg" }))}
-              href="/auth/signup"
-            >
+            <Link className={cn(buttonVariants({ size: "lg" }))} href="/auth">
               Start Tracking
               <ArrowRightIcon className="ml-1.5 size-4" />
             </Link>
             <Link
               className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
-              href="/auth/signin"
+              href="/auth"
             >
               Sign In
             </Link>
@@ -252,10 +249,7 @@ export function LandingPage() {
             Set up your organization in minutes. No credit card required.
           </p>
           <div className="mt-8">
-            <Link
-              className={cn(buttonVariants({ size: "lg" }))}
-              href="/auth/signup"
-            >
+            <Link className={cn(buttonVariants({ size: "lg" }))} href="/auth">
               Get Started Free
               <ArrowRightIcon className="ml-1.5 size-4" />
             </Link>

@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useAuthFormModeState } from "@som-brain-turbo/hooks";
 
 import SignInForm from "@/components/sign-in-form";
 import SignUpForm from "@/components/sign-up-form";
 
 export default function AuthPage() {
-  const [showSignIn, setShowSignIn] = useState(false);
+  const { isSignInMode, showSignInForm, showSignUpForm } =
+    useAuthFormModeState();
 
-  return showSignIn ? (
-    <SignInForm onSwitchToSignUp={() => setShowSignIn(false)} />
+  return isSignInMode ? (
+    <SignInForm onSwitchToSignUp={showSignUpForm} />
   ) : (
-    <SignUpForm onSwitchToSignIn={() => setShowSignIn(true)} />
+    <SignUpForm onSwitchToSignIn={showSignInForm} />
   );
 }
