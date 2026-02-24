@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { type AnyPgColumn, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
@@ -17,20 +18,23 @@ export const expenseCategories = createTable(
 			onDelete: "cascade",
 		}),
 		isActive: d.boolean().default(true).notNull(),
-		createdAt: d
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+		updatedAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
+			.$onUpdate(() => new Date())
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
 		index("expense_category_org_idx").on(t.organizationId),
 		index("expense_category_parent_idx").on(t.parentId),
-		uniqueIndex("expense_category_org_name_parent_idx").on(
-			t.organizationId,
-			t.name,
-			t.parentId,
-		),
+		index("expense_category_org_parent_idx").on(t.organizationId, t.parentId),
+		uniqueIndex("expense_category_org_name_parent_not_null_idx")
+			.on(t.organizationId, t.name, t.parentId)
+			.where(sql`${t.parentId} is not null`),
+		uniqueIndex("expense_category_org_name_parent_null_idx")
+			.on(t.organizationId, t.name)
+			.where(sql`${t.parentId} is null`),
 	],
 );
 
@@ -54,16 +58,18 @@ export const expenses = createTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		receipt: d.text(),
-		createdAt: d
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+		updatedAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
+			.$onUpdate(() => new Date())
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
 		index("expense_org_idx").on(t.organizationId),
 		index("expense_category_idx").on(t.categoryId),
 		index("expense_created_by_idx").on(t.createdById),
 		index("expense_date_idx").on(t.date),
+		index("expense_org_date_idx").on(t.organizationId, t.date),
 	],
 );

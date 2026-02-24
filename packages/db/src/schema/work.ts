@@ -15,13 +15,17 @@ export const departments = createTable(
 			.integer()
 			.notNull()
 			.references(() => organizations.id, { onDelete: "cascade" }),
-		createdAt: d
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+		updatedAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
+			.$onUpdate(() => new Date())
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
-	(t) => [index("department_org_idx").on(t.organizationId)],
+	(t) => [
+		index("department_org_idx").on(t.organizationId),
+		index("department_org_name_idx").on(t.organizationId, t.name),
+	],
 );
 
 export const tasks = createTable(
@@ -51,11 +55,12 @@ export const tasks = createTable(
 		unlimitedOvertime: d.boolean().default(false).notNull(),
 		completedAt: d.timestamp({ withTimezone: true }),
 		archivedAt: d.timestamp({ withTimezone: true }),
-		createdAt: d
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+		updatedAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
+			.$onUpdate(() => new Date())
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
 		index("task_project_idx").on(t.projectId),
@@ -65,7 +70,21 @@ export const tasks = createTable(
 		index("task_created_by_idx").on(t.createdById),
 		index("task_assigned_to_idx").on(t.assignedToId),
 		index("task_department_idx").on(t.departmentId),
-		index("task_overtime_idx").on(t.allowedOvertime),
+		index("task_project_status_archived_idx").on(
+			t.projectId,
+			t.status,
+			t.archivedAt,
+		),
+		index("task_assignee_status_archived_idx").on(
+			t.assignedToId,
+			t.status,
+			t.archivedAt,
+		),
+		index("task_department_status_archived_idx").on(
+			t.departmentId,
+			t.status,
+			t.archivedAt,
+		),
 	],
 );
 
@@ -79,10 +98,7 @@ export const checklistItems = createTable(
 			.references(() => tasks.id, { onDelete: "cascade" }),
 		name: d.varchar({ length: 256 }).notNull(),
 		isComplete: d.boolean().notNull().default(false),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
-			.notNull(),
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 	}),
 	(t) => [index("checklist_item_task_idx").on(t.taskId)],
 );
@@ -103,10 +119,7 @@ export const departmentMembers = createTable(
 			.integer()
 			.notNull()
 			.references(() => organizations.id, { onDelete: "cascade" }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
-			.notNull(),
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 	}),
 	(t) => [
 		index("dept_member_user_idx").on(t.userId),
@@ -129,10 +142,7 @@ export const taskReviewers = createTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		approvedAt: d.timestamp({ withTimezone: true }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
-			.notNull(),
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 	}),
 	(t) => [
 		index("task_reviewer_task_idx").on(t.taskId),
@@ -155,14 +165,16 @@ export const taskComments = createTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		content: d.text().notNull(),
 		type: commentTypeEnum().notNull().default("user"),
-		createdAt: d
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+		updatedAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
+			.$onUpdate(() => new Date())
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
 		index("task_comment_task_idx").on(t.taskId),
 		index("task_comment_user_idx").on(t.userId),
+		index("task_comment_task_created_idx").on(t.taskId, t.createdAt),
 	],
 );

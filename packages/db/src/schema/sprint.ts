@@ -23,13 +23,18 @@ export const sprintTemplates = createTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		createdAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+		updatedAt: d
+			.timestamp({ withTimezone: true })
+			.defaultNow()
+			.$onUpdate(() => new Date())
+			.notNull(),
 	}),
 	(t) => [
 		index("sprint_template_org_idx").on(t.organizationId),
 		index("sprint_template_created_by_idx").on(t.createdById),
+		index("sprint_template_org_creator_idx").on(t.organizationId, t.createdById),
 	],
 );
 
@@ -51,7 +56,7 @@ export const sprintTemplateSteps = createTable(
 		estimate: d.integer(),
 		createdAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
 			.notNull(),
 	}),
 	(t) => [
@@ -87,9 +92,13 @@ export const sprints = createTable(
 		completedAt: d.timestamp({ withTimezone: true }),
 		createdAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+		updatedAt: d
+			.timestamp({ withTimezone: true })
+			.defaultNow()
+			.$onUpdate(() => new Date())
+			.notNull(),
 	}),
 	(t) => [
 		index("sprint_project_idx").on(t.projectId),
@@ -97,6 +106,8 @@ export const sprints = createTable(
 		index("sprint_status_idx").on(t.status),
 		index("sprint_template_idx").on(t.templateId),
 		index("sprint_created_by_idx").on(t.createdById),
+		index("sprint_org_status_idx").on(t.organizationId, t.status),
+		index("sprint_project_status_idx").on(t.projectId, t.status),
 	],
 );
 
@@ -129,7 +140,7 @@ export const sprintTasks = createTable(
 		finishedById: d.text().references(() => user.id, { onDelete: "set null" }),
 		createdAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
 			.notNull(),
 	}),
 	(t) => [
@@ -138,8 +149,13 @@ export const sprintTasks = createTable(
 		index("sprint_task_dept_idx").on(t.departmentId),
 		index("sprint_task_order_idx").on(t.sprintId, t.sequenceOrder),
 		index("sprint_task_predecessor_idx").on(t.predecessorId),
-		index("sprint_task_visible_idx").on(t.isVisible),
 		index("sprint_task_status_idx").on(t.status),
+		index("sprint_task_finished_by_idx").on(t.finishedById),
+		index("sprint_task_sprint_status_visible_idx").on(
+			t.sprintId,
+			t.status,
+			t.isVisible,
+		),
 		uniqueIndex("sprint_task_unique_idx").on(t.sprintId, t.taskId),
 	],
 );

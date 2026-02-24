@@ -21,16 +21,17 @@ export const clients = createTable(
 		accessCodeCreatedAt: d.timestamp({ withTimezone: true }),
 		accessCodeExpiresAt: d.timestamp({ withTimezone: true }),
 		archivedAt: d.timestamp({ withTimezone: true }),
-		createdAt: d
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+		updatedAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
+			.$onUpdate(() => new Date())
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
 		index("client_org_idx").on(t.organizationId),
 		index("client_archived_idx").on(t.archivedAt),
-		index("client_access_code_idx").on(t.accessCode),
+		index("client_org_archived_idx").on(t.organizationId, t.archivedAt),
 	],
 );
 
@@ -49,15 +50,13 @@ export const clientRateHistory = createTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		reason: d.text(),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
-			.notNull(),
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 	}),
 	(t) => [
 		index("client_rate_history_client_idx").on(t.clientId),
 		index("client_rate_history_changed_by_idx").on(t.changedById),
 		index("client_rate_history_created_at_idx").on(t.createdAt),
+		index("client_rate_history_client_created_idx").on(t.clientId, t.createdAt),
 	],
 );
 
@@ -77,16 +76,18 @@ export const projects = createTable(
 			.notNull()
 			.references(() => organizations.id, { onDelete: "cascade" }),
 		archivedAt: d.timestamp({ withTimezone: true }),
-		createdAt: d
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+		updatedAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
+			.$onUpdate(() => new Date())
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
 		index("project_org_idx").on(t.organizationId),
 		index("project_client_idx").on(t.clientId),
 		index("project_archived_idx").on(t.archivedAt),
+		index("project_org_archived_idx").on(t.organizationId, t.archivedAt),
 	],
 );
 
@@ -102,10 +103,7 @@ export const projectOwners = createTable(
 			.text()
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
-			.notNull(),
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 	}),
 	(t) => [
 		index("project_owner_project_idx").on(t.projectId),

@@ -40,11 +40,12 @@ export const mbTickets = createTable(
 			.references(() => organizations.id, { onDelete: "cascade" }),
 		assets: jsonb().$type<{ url: string; name: string }[]>(),
 		archivedAt: d.timestamp({ withTimezone: true }),
-		createdAt: d
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+		updatedAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
+			.$onUpdate(() => new Date())
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
 		index("mb_ticket_org_idx").on(t.organizationId),
@@ -54,6 +55,16 @@ export const mbTickets = createTable(
 		index("mb_ticket_assignee_idx").on(t.assigneeId),
 		index("mb_ticket_project_idx").on(t.projectId),
 		index("mb_ticket_archived_idx").on(t.archivedAt),
+		index("mb_ticket_org_status_archived_idx").on(
+			t.organizationId,
+			t.status,
+			t.archivedAt,
+		),
+		index("mb_ticket_org_type_archived_idx").on(
+			t.organizationId,
+			t.type,
+			t.archivedAt,
+		),
 	],
 );
 
@@ -74,15 +85,18 @@ export const mbTicketIssues = createTable(
 			.text()
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		createdAt: d
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
+		updatedAt: d
 			.timestamp({ withTimezone: true })
-			.$defaultFn(() => new Date())
+			.defaultNow()
+			.$onUpdate(() => new Date())
 			.notNull(),
-		updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 	}),
 	(t) => [
 		index("mb_ticket_issue_ticket_idx").on(t.ticketId),
 		index("mb_ticket_issue_reporter_idx").on(t.reporterId),
 		index("mb_ticket_issue_resolved_idx").on(t.isResolved),
+		index("mb_ticket_issue_ticket_resolved_idx").on(t.ticketId, t.isResolved),
+		index("mb_ticket_issue_ticket_created_idx").on(t.ticketId, t.createdAt),
 	],
 );

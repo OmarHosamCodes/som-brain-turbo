@@ -24,10 +24,10 @@ import {
 	subTypeMultipliers,
 } from "./organization";
 import {
+	sprints,
 	sprintTasks,
 	sprintTemplateSteps,
 	sprintTemplates,
-	sprints,
 } from "./sprint";
 import { timeEntries, timeEntryReviewers } from "./time";
 import {

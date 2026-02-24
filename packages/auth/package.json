@@ -1,24 +1,24 @@
 {
-  "name": "@som-brain-turbo/auth",
-  "type": "module",
-  "exports": {
-    ".": {
-      "default": "./src/index.ts"
-    },
-    "./*": {
-      "default": "./src/*.ts"
-    }
-  },
-  "scripts": {},
-  "dependencies": {
-    "@som-brain-turbo/db": "workspace:*",
-    "@som-brain-turbo/env": "workspace:*",
-    "better-auth": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@som-brain-turbo/config": "workspace:*",
-    "typescript": "catalog:"
-  }
+	"name": "@som-brain-turbo/auth",
+	"type": "module",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"scripts": {},
+	"dependencies": {
+		"@som-brain-turbo/db": "workspace:*",
+		"@som-brain-turbo/env": "workspace:*",
+		"better-auth": "catalog:",
+		"dotenv": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@som-brain-turbo/config": "workspace:*",
+		"typescript": "catalog:"
+	}
 }
