@@ -1,0 +1,3 @@
+{
+  "extends": "@som-brain-turbo/config/tsconfig.base.json"
+}
