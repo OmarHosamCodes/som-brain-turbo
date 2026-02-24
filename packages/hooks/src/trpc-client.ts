@@ -24,8 +24,19 @@ const trpcClient = createTRPCClient<AppRouter>({
 		httpBatchLink({
 			url: "/api/trpc",
 			fetch(url, options) {
+				const headers = new Headers(options?.headers);
+				const activeOrgId =
+					typeof window !== "undefined"
+						? window.localStorage.getItem("active-org-id")
+						: null;
+
+				if (activeOrgId) {
+					headers.set("x-org-id", activeOrgId);
+				}
+
 				return fetch(url, {
 					...options,
+					headers,
 					credentials: "include",
 				});
 			},

@@ -1,5 +1,9 @@
 "use client";
 
+import type { AppRouter } from "@som-brain-turbo/api/routers/index";
+import { trpc } from "@som-brain-turbo/hooks";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import type { inferRouterOutputs } from "@trpc/server";
 import {
 	CheckCircle2Icon,
 	ChevronDownIcon,
@@ -10,6 +14,7 @@ import {
 	PlayCircleIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,180 +26,32 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
-type TargetType = "task" | "sprintStep" | "ticket";
+type RouterOutputs = inferRouterOutputs<AppRouter>;
+type DashboardData = RouterOutputs["timeTracker"]["dashboardData"];
+type DashboardTarget = DashboardData["targets"][number];
+type TargetType = DashboardTarget["type"];
+type DashboardEntry = DashboardData["entries"][number];
 
-interface TargetOption {
-	id: string;
-	type: TargetType;
-	title: string;
-	projectName: string;
-}
-
-interface DescriptionTemplate {
-	id: string;
+interface DescriptionSuggestion {
 	description: string;
-	targetId: string;
+	targetKey: string;
+	targetType: DashboardEntry["targetType"];
+	targetTitle: string | null;
 	isBillable: boolean;
-}
-
-interface TimeEntry {
-	id: string;
-	description: string;
-	targetId: string;
-	isBillable: boolean;
-	startedAt: string;
-	endedAt: string;
-	durationMinutes: number;
-}
-
-interface ActiveTimer {
-	description: string;
-	targetId: string;
-	isBillable: boolean;
-	startedAtMs: number;
 }
 
 interface GroupedEntries {
 	key: string;
 	description: string;
-	targetId: string;
+	targetKey: string | null;
+	targetType: DashboardEntry["targetType"];
+	targetTitle: string | null;
+	projectName: string | null;
 	isBillable: boolean;
 	totalMinutes: number;
-	entries: TimeEntry[];
+	entries: DashboardEntry[];
 	latestStartedAt: string;
 }
-
-const TARGET_OPTIONS: TargetOption[] = [
-	{
-		id: "task-frontend-reports",
-		type: "task",
-		title: "Build reports table filters",
-		projectName: "Pulse Platform",
-	},
-	{
-		id: "task-billing-export",
-		type: "task",
-		title: "Fix billing CSV export edge case",
-		projectName: "Finance Core",
-	},
-	{
-		id: "sprint-step-onboarding",
-		type: "sprintStep",
-		title: "Sprint 12: onboarding polish",
-		projectName: "Pulse Platform",
-	},
-	{
-		id: "sprint-step-qa",
-		type: "sprintStep",
-		title: "Sprint 12: QA and regression sweep",
-		projectName: "Pulse Platform",
-	},
-	{
-		id: "ticket-4189",
-		type: "ticket",
-		title: "SB-4189: timer drift on tab sleep",
-		projectName: "Tracker API",
-	},
-	{
-		id: "ticket-4220",
-		type: "ticket",
-		title: "SB-4220: duplicate entry merge issue",
-		projectName: "Tracker API",
-	},
-];
-
-const DESCRIPTION_TEMPLATES: DescriptionTemplate[] = [
-	{
-		id: "tpl-billing-export",
-		description: "Debugged CSV export mismatch for enterprise invoices",
-		targetId: "task-billing-export",
-		isBillable: true,
-	},
-	{
-		id: "tpl-reports-filter",
-		description:
-			"Implemented date-range and assignee filters for reports table",
-		targetId: "task-frontend-reports",
-		isBillable: true,
-	},
-	{
-		id: "tpl-ticket-drift",
-		description: "Investigated timer drift after browser sleep",
-		targetId: "ticket-4189",
-		isBillable: true,
-	},
-	{
-		id: "tpl-qa",
-		description: "Ran QA checklist and fixed sprint blockers",
-		targetId: "sprint-step-qa",
-		isBillable: false,
-	},
-	{
-		id: "tpl-dupes",
-		description: "Validated duplicate time-entry grouping behavior",
-		targetId: "ticket-4220",
-		isBillable: false,
-	},
-];
-
-const INITIAL_ENTRIES: TimeEntry[] = [
-	{
-		id: "entry-1",
-		description:
-			"Implemented date-range and assignee filters for reports table",
-		targetId: "task-frontend-reports",
-		isBillable: true,
-		startedAt: "2026-02-23T09:05:00.000Z",
-		endedAt: "2026-02-23T10:20:00.000Z",
-		durationMinutes: 75,
-	},
-	{
-		id: "entry-2",
-		description:
-			"Implemented date-range and assignee filters for reports table",
-		targetId: "task-frontend-reports",
-		isBillable: true,
-		startedAt: "2026-02-23T10:35:00.000Z",
-		endedAt: "2026-02-23T11:15:00.000Z",
-		durationMinutes: 40,
-	},
-	{
-		id: "entry-3",
-		description: "Investigated timer drift after browser sleep",
-		targetId: "ticket-4189",
-		isBillable: true,
-		startedAt: "2026-02-22T13:00:00.000Z",
-		endedAt: "2026-02-22T14:30:00.000Z",
-		durationMinutes: 90,
-	},
-	{
-		id: "entry-4",
-		description: "Ran QA checklist and fixed sprint blockers",
-		targetId: "sprint-step-qa",
-		isBillable: false,
-		startedAt: "2026-02-21T12:10:00.000Z",
-		endedAt: "2026-02-21T13:10:00.000Z",
-		durationMinutes: 60,
-	},
-	{
-		id: "entry-5",
-		description: "Validated duplicate time-entry grouping behavior",
-		targetId: "ticket-4220",
-		isBillable: false,
-		startedAt: "2026-02-20T15:00:00.000Z",
-		endedAt: "2026-02-20T15:30:00.000Z",
-		durationMinutes: 30,
-	},
-	{
-		id: "entry-6",
-		description: "Validated duplicate time-entry grouping behavior",
-		targetId: "ticket-4220",
-		isBillable: false,
-		startedAt: "2026-02-20T15:45:00.000Z",
-		endedAt: "2026-02-20T16:15:00.000Z",
-		durationMinutes: 30,
-	},
-];
 
 const TARGET_TYPE_LABELS: Record<TargetType, string> = {
 	task: "Task",
@@ -231,31 +88,41 @@ function formatDateTime(isoDate: string) {
 	}).format(new Date(isoDate));
 }
 
-function buildGroupedEntries(entries: TimeEntry[]) {
+function toErrorMessage(error: unknown) {
+	if (error instanceof Error) {
+		return error.message;
+	}
+	return "Something went wrong.";
+}
+
+function buildGroupedEntries(entries: DashboardEntry[]) {
 	const groupedMap = new Map<string, GroupedEntries>();
 
 	for (const entry of entries) {
-		const key = `${entry.description}|${entry.targetId}|${entry.isBillable}`;
+		const key = `${entry.description}|${entry.targetKey}|${entry.isBillable}`;
 		const existingGroup = groupedMap.get(key);
 
 		if (existingGroup) {
 			existingGroup.entries.push(entry);
 			existingGroup.totalMinutes += entry.durationMinutes;
 			if (
-				new Date(entry.startedAt).getTime() >
+				new Date(entry.startTime).getTime() >
 				new Date(existingGroup.latestStartedAt).getTime()
 			) {
-				existingGroup.latestStartedAt = entry.startedAt;
+				existingGroup.latestStartedAt = entry.startTime;
 			}
 		} else {
 			groupedMap.set(key, {
 				key,
 				description: entry.description,
-				targetId: entry.targetId,
+				targetKey: entry.targetKey,
+				targetType: entry.targetType,
+				targetTitle: entry.targetTitle,
+				projectName: entry.projectName,
 				isBillable: entry.isBillable,
 				totalMinutes: entry.durationMinutes,
 				entries: [entry],
-				latestStartedAt: entry.startedAt,
+				latestStartedAt: entry.startTime,
 			});
 		}
 	}
@@ -268,11 +135,22 @@ function buildGroupedEntries(entries: TimeEntry[]) {
 }
 
 export default function Dashboard() {
+	const dashboardQuery = useQuery(
+		trpc.timeTracker.dashboardData.queryOptions(),
+	);
+	const startTimerMutation = useMutation(
+		trpc.timeTracker.startTimer.mutationOptions(),
+	);
+	const stopTimerMutation = useMutation(
+		trpc.timeTracker.stopTimer.mutationOptions(),
+	);
+	const discardTimerMutation = useMutation(
+		trpc.timeTracker.discardTimer.mutationOptions(),
+	);
+
 	const [description, setDescription] = useState("");
-	const [targetId, setTargetId] = useState(TARGET_OPTIONS[0]?.id ?? "");
+	const [targetKey, setTargetKey] = useState("");
 	const [isBillable, setIsBillable] = useState(true);
-	const [entries, setEntries] = useState<TimeEntry[]>(INITIAL_ENTRIES);
-	const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
 	const [elapsedSeconds, setElapsedSeconds] = useState(0);
 	const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
 	const [collapsedGroups, setCollapsedGroups] = useState<
@@ -280,26 +158,71 @@ export default function Dashboard() {
 	>({});
 	const [currentPage, setCurrentPage] = useState(1);
 
-	const targetById = useMemo(
-		() => new Map(TARGET_OPTIONS.map((target) => [target.id, target])),
-		[],
+	const targets = dashboardQuery.data?.targets ?? [];
+	const completedEntries = dashboardQuery.data?.entries ?? [];
+	const activeEntry = dashboardQuery.data?.activeEntry ?? null;
+
+	const targetsByKey = useMemo(
+		() => new Map(targets.map((target) => [target.key, target])),
+		[targets],
 	);
 
-	const selectedTarget = targetById.get(targetId);
+	const suggestions = useMemo(() => {
+		const deduped = new Map<string, DescriptionSuggestion>();
 
-	const matchingTemplates = useMemo(() => {
-		const query = description.trim().toLowerCase();
+		for (const entry of completedEntries) {
+			if (!entry.targetKey) {
+				continue;
+			}
 
-		if (!query) {
-			return DESCRIPTION_TEMPLATES.slice(0, 4);
+			const trimmedDescription = entry.description.trim();
+			if (!trimmedDescription) {
+				continue;
+			}
+
+			const signature = `${trimmedDescription.toLowerCase()}|${entry.targetKey}|${entry.isBillable}`;
+			if (deduped.has(signature)) {
+				continue;
+			}
+
+			deduped.set(signature, {
+				description: trimmedDescription,
+				targetKey: entry.targetKey,
+				targetType: entry.targetType,
+				targetTitle: entry.targetTitle,
+				isBillable: entry.isBillable,
+			});
+
+			if (deduped.size >= 40) {
+				break;
+			}
 		}
 
-		return DESCRIPTION_TEMPLATES.filter((template) =>
-			template.description.toLowerCase().includes(query),
-		).slice(0, 5);
-	}, [description]);
+		return [...deduped.values()];
+	}, [completedEntries]);
 
-	const groupedEntries = useMemo(() => buildGroupedEntries(entries), [entries]);
+	const matchingSuggestions = useMemo(() => {
+		const query = description.trim().toLowerCase();
+		if (!query) {
+			return suggestions.slice(0, 5);
+		}
+
+		return suggestions
+			.filter((suggestion) =>
+				suggestion.description.toLowerCase().includes(query),
+			)
+			.slice(0, 5);
+	}, [description, suggestions]);
+
+	const selectedTarget = useMemo(
+		() => targets.find((target) => target.key === targetKey) ?? null,
+		[targetKey, targets],
+	);
+
+	const groupedEntries = useMemo(
+		() => buildGroupedEntries(completedEntries),
+		[completedEntries],
+	);
 	const totalPages = Math.max(
 		1,
 		Math.ceil(groupedEntries.length / GROUPS_PER_PAGE),
@@ -311,23 +234,43 @@ export default function Dashboard() {
 	}, [groupedEntries, currentPage]);
 
 	useEffect(() => {
-		if (!activeTimer) {
+		if (!activeEntry) {
 			setElapsedSeconds(0);
 			return;
 		}
 
 		setElapsedSeconds(
-			Math.floor((Date.now() - activeTimer.startedAtMs) / 1000),
+			Math.floor(
+				(Date.now() - new Date(activeEntry.startTime).getTime()) / 1000,
+			),
 		);
 
 		const timerId = window.setInterval(() => {
 			setElapsedSeconds(
-				Math.floor((Date.now() - activeTimer.startedAtMs) / 1000),
+				Math.floor(
+					(Date.now() - new Date(activeEntry.startTime).getTime()) / 1000,
+				),
 			);
 		}, 1000);
 
 		return () => window.clearInterval(timerId);
-	}, [activeTimer]);
+	}, [activeEntry]);
+
+	useEffect(() => {
+		if (targets.length === 0) {
+			if (targetKey !== "") {
+				setTargetKey("");
+			}
+			return;
+		}
+
+		const hasSelectedTarget = targets.some(
+			(target) => target.key === targetKey,
+		);
+		if (!hasSelectedTarget) {
+			setTargetKey(targets[0]?.key ?? "");
+		}
+	}, [targetKey, targets]);
 
 	useEffect(() => {
 		if (currentPage > totalPages) {
@@ -335,73 +278,69 @@ export default function Dashboard() {
 		}
 	}, [currentPage, totalPages]);
 
-	const applyTemplate = (template: DescriptionTemplate) => {
-		setDescription(template.description);
-		setTargetId(template.targetId);
-		setIsBillable(template.isBillable);
+	const applySuggestion = (suggestion: DescriptionSuggestion) => {
+		setDescription(suggestion.description);
+		if (targetsByKey.has(suggestion.targetKey)) {
+			setTargetKey(suggestion.targetKey);
+		}
+		setIsBillable(suggestion.isBillable);
 		setIsDescriptionFocused(false);
 	};
 
 	const handleDescriptionChange = (value: string) => {
 		setDescription(value);
 
-		const exactTemplate = DESCRIPTION_TEMPLATES.find(
-			(template) =>
-				template.description.toLowerCase() === value.trim().toLowerCase(),
+		const exactSuggestion = suggestions.find(
+			(suggestion) =>
+				suggestion.description.toLowerCase() === value.trim().toLowerCase(),
 		);
 
-		if (exactTemplate) {
-			setTargetId(exactTemplate.targetId);
-			setIsBillable(exactTemplate.isBillable);
+		if (!exactSuggestion) {
+			return;
 		}
+
+		if (targetsByKey.has(exactSuggestion.targetKey)) {
+			setTargetKey(exactSuggestion.targetKey);
+		}
+		setIsBillable(exactSuggestion.isBillable);
 	};
 
-	const handleStartTimer = () => {
+	const handleStartTimer = async () => {
 		const normalizedDescription = description.trim();
-		if (!normalizedDescription || !targetId) {
+		if (!normalizedDescription || !targetKey) {
 			return;
 		}
 
-		setActiveTimer({
-			description: normalizedDescription,
-			targetId,
-			isBillable,
-			startedAtMs: Date.now(),
-		});
+		try {
+			await startTimerMutation.mutateAsync({
+				description: normalizedDescription,
+				targetKey,
+				isBillable,
+			});
+			setCurrentPage(1);
+			await dashboardQuery.refetch();
+		} catch (error) {
+			toast.error(toErrorMessage(error));
+		}
 	};
 
-	const handleStopTimer = () => {
-		if (!activeTimer) {
-			return;
+	const handleStopTimer = async () => {
+		try {
+			await stopTimerMutation.mutateAsync();
+			setCurrentPage(1);
+			await dashboardQuery.refetch();
+		} catch (error) {
+			toast.error(toErrorMessage(error));
 		}
-
-		const endedAtMs = Date.now();
-		const startedAtMs = activeTimer.startedAtMs;
-		const durationMinutes = Math.max(
-			1,
-			Math.round((endedAtMs - startedAtMs) / (1000 * 60)),
-		);
-
-		const newEntry: TimeEntry = {
-			id: `entry-${crypto.randomUUID()}`,
-			description: activeTimer.description,
-			targetId: activeTimer.targetId,
-			isBillable: activeTimer.isBillable,
-			startedAt: new Date(startedAtMs).toISOString(),
-			endedAt: new Date(endedAtMs).toISOString(),
-			durationMinutes,
-		};
-
-		setEntries((previousEntries) => [newEntry, ...previousEntries]);
-		setActiveTimer(null);
-		setCurrentPage(1);
 	};
 
-	const handleDiscardTimer = () => {
-		if (!activeTimer) {
-			return;
+	const handleDiscardTimer = async () => {
+		try {
+			await discardTimerMutation.mutateAsync();
+			await dashboardQuery.refetch();
+		} catch (error) {
+			toast.error(toErrorMessage(error));
 		}
-		setActiveTimer(null);
 	};
 
 	const toggleGroup = (key: string) => {
@@ -411,8 +350,54 @@ export default function Dashboard() {
 		}));
 	};
 
-	const timerIsRunning = activeTimer !== null;
-	const canStart = description.trim().length > 0 && Boolean(targetId);
+	const mutationBusy =
+		startTimerMutation.isPending ||
+		stopTimerMutation.isPending ||
+		discardTimerMutation.isPending;
+	const timerIsRunning = activeEntry !== null;
+	const canStart =
+		description.trim().length > 0 &&
+		Boolean(targetKey) &&
+		!timerIsRunning &&
+		!mutationBusy;
+
+	if (dashboardQuery.isPending) {
+		return (
+			<div className="space-y-4">
+				<h1 className="font-semibold text-2xl">Time Tracker</h1>
+				<Card>
+					<CardContent className="pt-4">
+						<p className="text-muted-foreground text-sm">
+							Loading tracker data...
+						</p>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
+	if (dashboardQuery.isError) {
+		return (
+			<div className="space-y-4">
+				<h1 className="font-semibold text-2xl">Time Tracker</h1>
+				<Card>
+					<CardContent className="space-y-3 pt-4">
+						<p className="text-destructive text-sm">
+							{dashboardQuery.error.message}
+						</p>
+						<Button
+							variant="outline"
+							onClick={() => {
+								void dashboardQuery.refetch();
+							}}
+						>
+							Retry
+						</Button>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-5">
@@ -464,31 +449,28 @@ export default function Dashboard() {
 									}}
 									className="pr-8"
 								/>
-								{isDescriptionFocused && matchingTemplates.length > 0 && (
+								{isDescriptionFocused && matchingSuggestions.length > 0 && (
 									<div className="absolute z-20 mt-1 max-h-52 w-full overflow-auto border border-border bg-popover shadow-sm">
-										{matchingTemplates.map((template) => {
-											const templateTarget = targetById.get(template.targetId);
-											if (!templateTarget) return null;
-
-											return (
-												<button
-													type="button"
-													key={template.id}
-													onMouseDown={(event) => event.preventDefault()}
-													onClick={() => applyTemplate(template)}
-													className="flex w-full flex-col gap-1 border-border border-b px-2.5 py-2 text-left transition-colors last:border-b-0 hover:bg-accent"
-												>
-													<span className="line-clamp-1 text-xs">
-														{template.description}
-													</span>
-													<span className="text-[11px] text-muted-foreground">
-														Auto-target:{" "}
-														{TARGET_TYPE_LABELS[templateTarget.type]} •{" "}
-														{templateTarget.title}
-													</span>
-												</button>
-											);
-										})}
+										{matchingSuggestions.map((suggestion) => (
+											<button
+												type="button"
+												key={`${suggestion.description}|${suggestion.targetKey}|${suggestion.isBillable}`}
+												onMouseDown={(event) => event.preventDefault()}
+												onClick={() => applySuggestion(suggestion)}
+												className="flex w-full flex-col gap-1 border-border border-b px-2.5 py-2 text-left transition-colors last:border-b-0 hover:bg-accent"
+											>
+												<span className="line-clamp-1 text-xs">
+													{suggestion.description}
+												</span>
+												<span className="text-[11px] text-muted-foreground">
+													Auto-target:{" "}
+													{suggestion.targetType
+														? TARGET_TYPE_LABELS[suggestion.targetType]
+														: "Target"}
+													• {suggestion.targetTitle ?? "Unknown target"}
+												</span>
+											</button>
+										))}
 									</div>
 								)}
 							</div>
@@ -504,19 +486,24 @@ export default function Dashboard() {
 								</label>
 								<select
 									id="tracker-target"
-									value={targetId}
-									onChange={(event) => setTargetId(event.currentTarget.value)}
-									className="h-8 w-full border border-input bg-transparent px-2.5 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
+									value={targetKey}
+									onChange={(event) => setTargetKey(event.currentTarget.value)}
+									disabled={targets.length === 0}
+									className="h-8 w-full border border-input bg-transparent px-2.5 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:opacity-50"
 								>
-									{TARGET_OPTIONS.map((target) => (
-										<option
-											key={target.id}
-											value={target.id}
-											className="bg-background text-foreground"
-										>
-											{TARGET_TYPE_LABELS[target.type]} • {target.title}
-										</option>
-									))}
+									{targets.length === 0 ? (
+										<option value="">No valid targets</option>
+									) : (
+										targets.map((target) => (
+											<option
+												key={target.key}
+												value={target.key}
+												className="bg-background text-foreground"
+											>
+												{TARGET_TYPE_LABELS[target.type]} • {target.title}
+											</option>
+										))
+									)}
 								</select>
 								<p className="text-muted-foreground text-xs">
 									Only task, sprint step, and ticket targets are allowed.
@@ -553,8 +540,14 @@ export default function Dashboard() {
 						<div className="flex flex-wrap items-center gap-2">
 							<Button
 								variant={timerIsRunning ? "destructive" : "default"}
-								onClick={timerIsRunning ? handleStopTimer : handleStartTimer}
-								disabled={!timerIsRunning && !canStart}
+								onClick={() => {
+									if (timerIsRunning) {
+										void handleStopTimer();
+										return;
+									}
+									void handleStartTimer();
+								}}
+								disabled={timerIsRunning ? mutationBusy : !canStart}
 							>
 								{timerIsRunning ? (
 									<>
@@ -578,19 +571,21 @@ export default function Dashboard() {
 								<DropdownMenuContent align="end" className="w-40 bg-card">
 									<DropdownMenuItem
 										variant="destructive"
-										disabled={!timerIsRunning}
-										onClick={handleDiscardTimer}
+										disabled={!timerIsRunning || mutationBusy}
+										onClick={() => {
+											void handleDiscardTimer();
+										}}
 									>
 										Discard
 									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
 
-							{timerIsRunning && activeTimer && (
+							{timerIsRunning && activeEntry && (
 								<div className="flex items-center gap-2 text-muted-foreground text-xs">
 									<CheckCircle2Icon className="size-3.5" />
 									<span className="line-clamp-1">
-										Running: {activeTimer.description}
+										Running: {activeEntry.description}
 									</span>
 								</div>
 							)}
@@ -605,7 +600,7 @@ export default function Dashboard() {
 									<span className="font-medium">{selectedTarget.title}</span>
 								</div>
 								<p className="text-muted-foreground">
-									Project: {selectedTarget.projectName}
+									Project: {selectedTarget.projectName ?? "No project"}
 								</p>
 							</div>
 						)}
@@ -630,7 +625,6 @@ export default function Dashboard() {
 							</p>
 						) : (
 							paginatedGroups.map((group) => {
-								const groupTarget = targetById.get(group.targetId);
 								const collapsed = collapsedGroups[group.key] ?? false;
 
 								return (
@@ -649,12 +643,12 @@ export default function Dashboard() {
 												</p>
 												<div className="flex flex-wrap items-center gap-1.5">
 													<Badge variant="outline">
-														{groupTarget
-															? TARGET_TYPE_LABELS[groupTarget.type]
+														{group.targetType
+															? TARGET_TYPE_LABELS[group.targetType]
 															: "Target"}
 													</Badge>
 													<span className="truncate text-muted-foreground text-xs">
-														{groupTarget?.title ?? "Unknown target"}
+														{group.targetTitle ?? "Unknown target"}
 													</span>
 													<Badge
 														variant={group.isBillable ? "default" : "secondary"}
@@ -683,8 +677,8 @@ export default function Dashboard() {
 													.slice()
 													.sort(
 														(a, b) =>
-															new Date(b.startedAt).getTime() -
-															new Date(a.startedAt).getTime(),
+															new Date(b.startTime).getTime() -
+															new Date(a.startTime).getTime(),
 													)
 													.map((entry) => (
 														<div
@@ -692,8 +686,8 @@ export default function Dashboard() {
 															className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-border border-b pb-2 text-xs last:border-b-0 last:pb-0"
 														>
 															<div className="text-muted-foreground">
-																{formatDateTime(entry.startedAt)} -{" "}
-																{formatDateTime(entry.endedAt)}
+																{formatDateTime(entry.startTime)} -{" "}
+																{formatDateTime(entry.endTime)}
 															</div>
 															<div className="font-medium">
 																{formatMinutes(entry.durationMinutes)}
