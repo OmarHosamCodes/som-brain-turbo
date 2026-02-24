@@ -1,9 +1,7 @@
 "use client";
 
-import { queryClient, trpc } from "@som-brain-turbo/hooks";
-import { useQuery } from "@tanstack/react-query";
+import { useOrgSwitcherState } from "@som-brain-turbo/hooks";
 import { Building2Icon, CheckIcon, ChevronDownIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -13,74 +11,14 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const ACTIVE_ORG_STORAGE_KEY = "active-org-id";
-
-function persistActiveOrg(activeOrgId: string) {
-	window.localStorage.setItem(ACTIVE_ORG_STORAGE_KEY, activeOrgId);
-}
-
 export function OrgSwitcher() {
-	const organizationsQuery = useQuery(
-		trpc.workspace.organizations.queryOptions(),
-	);
-	const organizations = organizationsQuery.data ?? [];
-	const [activeOrgId, setActiveOrgId] = useState("");
-
-	useEffect(() => {
-		const storedActiveOrgId = window.localStorage.getItem(
-			ACTIVE_ORG_STORAGE_KEY,
-		);
-		if (storedActiveOrgId) {
-			setActiveOrgId(storedActiveOrgId);
-		}
-	}, []);
-
-	useEffect(() => {
-		if (organizations.length === 0) {
-			if (activeOrgId !== "") {
-				setActiveOrgId("");
-			}
-			return;
-		}
-
-		const hasActiveOrg = organizations.some(
-			(organization) => String(organization.id) === activeOrgId,
-		);
-
-		if (hasActiveOrg) {
-			return;
-		}
-
-		const storedActiveOrgId = window.localStorage.getItem(
-			ACTIVE_ORG_STORAGE_KEY,
-		);
-		const nextActiveOrgId = organizations.find(
-			(organization) => String(organization.id) === storedActiveOrgId,
-		)
-			? storedActiveOrgId
-			: String(organizations[0]?.id ?? "");
-
-		if (!nextActiveOrgId) {
-			return;
-		}
-
-		setActiveOrgId(nextActiveOrgId);
-		persistActiveOrg(nextActiveOrgId);
-	}, [activeOrgId, organizations]);
-
-	const activeOrg = useMemo(
-		() =>
-			organizations.find(
-				(organization) => String(organization.id) === activeOrgId,
-			) ?? null,
-		[activeOrgId, organizations],
-	);
-
-	const handleOrgSelect = (organizationId: string) => {
-		setActiveOrgId(organizationId);
-		persistActiveOrg(organizationId);
-		void queryClient.invalidateQueries();
-	};
+	const {
+		activeOrganization,
+		activeOrganizationId,
+		organizations,
+		organizationsQuery,
+		selectOrganization,
+	} = useOrgSwitcherState();
 
 	if (organizationsQuery.isPending) {
 		return (
@@ -107,7 +45,7 @@ export function OrgSwitcher() {
 			>
 				<Building2Icon className="size-4" />
 				<span className="max-w-44 truncate">
-					{activeOrg?.name ?? "Workspace"}
+					{activeOrganization?.name ?? "Workspace"}
 				</span>
 				<ChevronDownIcon className="size-4" />
 			</DropdownMenuTrigger>
@@ -119,10 +57,10 @@ export function OrgSwitcher() {
 							<DropdownMenuItem
 								className="flex items-center gap-2"
 								key={organization.id}
-								onClick={() => handleOrgSelect(organizationId)}
+								onClick={() => selectOrganization(organizationId)}
 							>
 								<span className="flex-1">{organization.name}</span>
-								{organizationId === activeOrgId ? (
+								{organizationId === activeOrganizationId ? (
 									<CheckIcon className="size-4 text-primary" />
 								) : null}
 							</DropdownMenuItem>

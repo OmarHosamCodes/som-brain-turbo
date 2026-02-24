@@ -1,6 +1,10 @@
 "use client";
 
-import { useAuthSession, useSignInForm } from "@som-brain-turbo/hooks";
+import {
+	useAuthFormModeState,
+	useAuthSession,
+	useSignInForm,
+} from "@som-brain-turbo/hooks";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,12 +25,9 @@ import { Input } from "@/components/ui/input";
 import { GridBackground } from "./backgrounds/grid-background";
 import Loader from "./loader";
 
-export default function SignInForm({
-	onSwitchToSignUp,
-}: {
-	onSwitchToSignUp: () => void;
-}) {
+export default function SignInForm() {
 	const { isPending } = useAuthSession();
+	const { showSignUpForm } = useAuthFormModeState();
 	const { form, onSubmit, onGoogleSignIn } = useSignInForm();
 	const {
 		register,
@@ -88,7 +89,7 @@ export default function SignInForm({
 									<div className="flex items-center">
 										<FieldLabel htmlFor="password">Password</FieldLabel>
 										<a
-											href="#"
+											href="/auth/forgot-password"
 											className="ml-auto text-sm underline-offset-4 hover:underline"
 										>
 											Forgot your password?
@@ -109,7 +110,7 @@ export default function SignInForm({
 									</Button>
 									<Button
 										type="button"
-										onClick={onSwitchToSignUp}
+										onClick={showSignUpForm}
 										variant="ghost"
 										size="xs"
 										className="mx-auto max-w-min text-center"
@@ -122,7 +123,8 @@ export default function SignInForm({
 					</Card>
 					<FieldDescription className="px-6 text-center">
 						By clicking continue, you agree to our{" "}
-						<a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+						<a href="/terms">Terms of Service</a> and{" "}
+						<a href="/privacy">Privacy Policy</a>.
 					</FieldDescription>
 				</div>
 			</form>

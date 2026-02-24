@@ -6,12 +6,7 @@ import SignInForm from "@/components/sign-in-form";
 import SignUpForm from "@/components/sign-up-form";
 
 export default function AuthPage() {
-	const { isSignInMode, showSignInForm, showSignUpForm } =
-		useAuthFormModeState();
+	const { isSignInMode } = useAuthFormModeState();
 
-	return isSignInMode ? (
-		<SignInForm onSwitchToSignUp={showSignUpForm} />
-	) : (
-		<SignUpForm onSwitchToSignIn={showSignInForm} />
-	);
+	return isSignInMode ? <SignInForm /> : <SignUpForm />;
 }

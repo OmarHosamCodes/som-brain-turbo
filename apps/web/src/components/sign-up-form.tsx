@@ -1,6 +1,10 @@
 "use client";
 
-import { useAuthSession, useSignUpForm } from "@som-brain-turbo/hooks";
+import {
+	useAuthFormModeState,
+	useAuthSession,
+	useSignUpForm,
+} from "@som-brain-turbo/hooks";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,12 +25,9 @@ import { Input } from "@/components/ui/input";
 import { GridBackground } from "./backgrounds/grid-background";
 import Loader from "./loader";
 
-export default function SignUpForm({
-	onSwitchToSignIn,
-}: {
-	onSwitchToSignIn: () => void;
-}) {
+export default function SignUpForm() {
 	const { isPending } = useAuthSession();
+	const { showSignInForm } = useAuthFormModeState();
 	const { form, onSubmit, onGoogleSignUp } = useSignUpForm();
 	const {
 		register,
@@ -131,7 +132,7 @@ export default function SignUpForm({
 									</Button>
 									<Button
 										type="button"
-										onClick={onSwitchToSignIn}
+										onClick={showSignInForm}
 										variant="ghost"
 										size="xs"
 										className="mx-auto max-w-min text-center"
@@ -144,7 +145,8 @@ export default function SignUpForm({
 					</Card>
 					<FieldDescription className="px-6 text-center">
 						By clicking continue, you agree to our{" "}
-						<a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+						<a href="/terms">Terms of Service</a> and{" "}
+						<a href="/privacy">Privacy Policy</a>.
 					</FieldDescription>
 				</div>
 			</form>

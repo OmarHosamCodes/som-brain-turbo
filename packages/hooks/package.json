@@ -20,11 +20,13 @@
 		"@trpc/tanstack-react-query": "^11.7.2",
 		"better-auth": "catalog:",
 		"next": "catalog:",
+		"react": "^19.2.3",
 		"react-hook-form": "^7.66.0",
 		"sonner": "^2.0.5"
 	},
 	"devDependencies": {
 		"@som-brain-turbo/config": "workspace:*",
+		"@types/react": "^19.2.7",
 		"typescript": "catalog:"
 	}
 }

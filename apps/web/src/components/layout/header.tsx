@@ -1,8 +1,7 @@
 "use client";
 
-import { authClient } from "@som-brain-turbo/hooks";
+import { useHeaderUserState } from "@som-brain-turbo/hooks";
 import { LogOutIcon, SettingsIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,23 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { OrgSwitcher } from "./org-switcher";
 
-interface HeaderProps {
-	user: {
-		name?: string | null;
-		email: string;
-	};
-}
-
-export function Header({ user }: HeaderProps) {
-	const router = useRouter();
-
-	const userName = user.name?.trim() || user.email;
-	const userInitial = userName.charAt(0).toUpperCase();
-
-	const handleSignOut = async () => {
-		await authClient.signOut();
-		router.push("/auth");
-	};
+export function Header() {
+	const { userEmail, userInitial, userName, signOut } = useHeaderUserState();
 
 	return (
 		<header className="flex h-16 items-center justify-between border-border border-b bg-card px-4 md:px-6">
@@ -61,7 +45,7 @@ export function Header({ user }: HeaderProps) {
 								<div className="flex flex-col gap-1">
 									<p className="font-medium text-sm">{userName}</p>
 									<p className="truncate text-muted-foreground text-xs">
-										{user.email}
+										{userEmail}
 									</p>
 								</div>
 							</DropdownMenuLabel>
@@ -75,7 +59,7 @@ export function Header({ user }: HeaderProps) {
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
-							onClick={() => void handleSignOut()}
+							onClick={() => void signOut()}
 							variant="destructive"
 						>
 							<LogOutIcon className="size-4" />

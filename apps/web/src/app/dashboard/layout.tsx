@@ -17,14 +17,5 @@ export default async function DashboardLayout({
 		redirect("/auth");
 	}
 
-	return (
-		<DashboardShell
-			user={{
-				email: session.user.email,
-				name: session.user.name,
-			}}
-		>
-			{children}
-		</DashboardShell>
-	);
+	return <DashboardShell>{children}</DashboardShell>;
 }

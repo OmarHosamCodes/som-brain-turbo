@@ -16,7 +16,7 @@ import {
 	UsersIcon,
 	WalletIcon,
 } from "lucide-react";
-import type { NavGroup, NavItem } from "./types";
+import type { NavGroup, NavItem } from "@/types/layout";
 
 export const navGroups: NavGroup[] = [
 	{
