@@ -5,26 +5,26 @@ import type { ReactNode } from "react";
 import { DashboardShell } from "@/components/layout";
 
 export default async function DashboardLayout({
-  children,
+	children,
 }: {
-  children: ReactNode;
+	children: ReactNode;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
 
-  if (!session?.user) {
-    redirect("/auth");
-  }
+	if (!session?.user) {
+		redirect("/auth");
+	}
 
-  return (
-    <DashboardShell
-      user={{
-        email: session.user.email,
-        name: session.user.name,
-      }}
-    >
-      {children}
-    </DashboardShell>
-  );
+	return (
+		<DashboardShell
+			user={{
+				email: session.user.email,
+				name: session.user.name,
+			}}
+		>
+			{children}
+		</DashboardShell>
+	);
 }

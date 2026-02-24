@@ -22,14 +22,10 @@ This file defines working conventions for coding agents in this repository.
 
 ## Rules for Creating Anything New
 
-- Create new files/modules only when extending existing code is not sufficient.
-- Reuse existing utilities, components, and patterns before introducing new abstractions.
-- Place new code in the correct package/folder based on current repository structure.
-- Name new files, symbols, and APIs consistently with existing conventions.
-- For new dependencies, prefer built-in or already-installed tools first; add dependencies only with clear justification.
-- For new public APIs, include types, usage examples, and backward-compatibility notes.
-- For new config/scripts, keep defaults safe and document how to run them.
-- For new feature work, include tests (unit/integration as appropriate) in the same change.
+- NEVER create more than one component per file
+- NEVER put state, hooks or validators in apps/web. Instead put it in packages/
+- NEVER uses ussState or useEffect. Use zustand
+- put all types in the types folder in apps/web/src/types/
 
 ## Commands
 

@@ -1,20 +1,20 @@
 {
-  "version": 1,
-  "skills": {
-    "drizzle-best-practices": {
-      "source": "honra-io/drizzle-best-practices",
-      "sourceType": "github",
-      "computedHash": "39459e68af51d6dd06ba58af327e1708eeb9ab0e500e6c078c690eafae17683f"
-    },
-    "frontend-design": {
-      "source": "anthropics/skills",
-      "sourceType": "github",
-      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
-    },
-    "tailwind-responsive-design": {
-      "source": "thebushidocollective/han",
-      "sourceType": "github",
-      "computedHash": "be0e7e40bdd242626c000a68ee022a7820202e9c03e764bf7ed92ea94f41e14e"
-    }
-  }
+	"version": 1,
+	"skills": {
+		"drizzle-best-practices": {
+			"source": "honra-io/drizzle-best-practices",
+			"sourceType": "github",
+			"computedHash": "39459e68af51d6dd06ba58af327e1708eeb9ab0e500e6c078c690eafae17683f"
+		},
+		"frontend-design": {
+			"source": "anthropics/skills",
+			"sourceType": "github",
+			"computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
+		},
+		"tailwind-responsive-design": {
+			"source": "thebushidocollective/han",
+			"sourceType": "github",
+			"computedHash": "be0e7e40bdd242626c000a68ee022a7820202e9c03e764bf7ed92ea94f41e14e"
+		}
+	}
 }

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
+import type { NavItem } from "@/types/layout";
 import { isActive } from "./is-active";
-import type { NavItem } from "./types";
 
 interface NavLinkProps {
 	item: NavItem;

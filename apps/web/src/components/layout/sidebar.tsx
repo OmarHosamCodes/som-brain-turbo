@@ -1,6 +1,11 @@
 "use client";
 
-import { ChevronDownIcon, ChevronLeftIcon, ClockIcon, PanelLeftIcon } from "lucide-react";
+import {
+	ChevronDownIcon,
+	ChevronLeftIcon,
+	ClockIcon,
+	PanelLeftIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -13,7 +18,9 @@ import { NavSection } from "./sidebar/nav-section";
 export function Sidebar() {
 	const pathname = usePathname();
 	const [collapsed, setCollapsed] = useState(false);
-	const [settingsOpen, setSettingsOpen] = useState(pathname.startsWith("/dashboard/settings"));
+	const [settingsOpen, setSettingsOpen] = useState(
+		pathname.startsWith("/dashboard/settings"),
+	);
 
 	return (
 		<aside
@@ -28,7 +35,9 @@ export function Sidebar() {
 						<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
 							<ClockIcon className="size-4 text-primary-foreground" />
 						</div>
-						<span className="font-semibold text-foreground text-lg">SomBrain</span>
+						<span className="font-semibold text-foreground text-lg">
+							SomBrain
+						</span>
 					</Link>
 				) : null}
 				<Button
@@ -37,14 +46,23 @@ export function Sidebar() {
 					size="sm"
 					variant="ghost"
 				>
-					{collapsed ? <PanelLeftIcon className="size-4" /> : <ChevronLeftIcon className="size-4" />}
+					{collapsed ? (
+						<PanelLeftIcon className="size-4" />
+					) : (
+						<ChevronLeftIcon className="size-4" />
+					)}
 				</Button>
 			</div>
 
 			<nav className="flex-1 overflow-y-auto p-3">
 				<div className="space-y-4">
 					{navGroups.map((group) => (
-						<NavSection collapsed={collapsed} group={group} key={group.label} pathname={pathname} />
+						<NavSection
+							collapsed={collapsed}
+							group={group}
+							key={group.label}
+							pathname={pathname}
+						/>
 					))}
 				</div>
 
@@ -52,7 +70,12 @@ export function Sidebar() {
 					{collapsed ? (
 						<ul className="space-y-1">
 							{settingsItems.map((item) => (
-								<NavLink collapsed item={item} key={item.href} pathname={pathname} />
+								<NavLink
+									collapsed
+									item={item}
+									key={item.href}
+									pathname={pathname}
+								/>
 							))}
 						</ul>
 					) : (
@@ -63,12 +86,22 @@ export function Sidebar() {
 								type="button"
 							>
 								<span>Settings</span>
-								<ChevronDownIcon className={cn("size-3.5 transition-transform", !settingsOpen && "-rotate-90")} />
+								<ChevronDownIcon
+									className={cn(
+										"size-3.5 transition-transform",
+										!settingsOpen && "-rotate-90",
+									)}
+								/>
 							</button>
 							{settingsOpen ? (
 								<ul className="mt-1 space-y-0.5">
 									{settingsItems.map((item) => (
-										<NavLink collapsed={false} item={item} key={item.href} pathname={pathname} />
+										<NavLink
+											collapsed={false}
+											item={item}
+											key={item.href}
+											pathname={pathname}
+										/>
 									))}
 								</ul>
 							) : null}

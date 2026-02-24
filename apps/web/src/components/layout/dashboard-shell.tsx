@@ -18,7 +18,9 @@ export function DashboardShell({ children, user }: DashboardShellProps) {
 			<Sidebar />
 			<div className="flex min-w-0 flex-1 flex-col">
 				<Header user={user} />
-				<main className="min-h-0 flex-1 overflow-auto p-4 md:p-6">{children}</main>
+				<main className="min-h-0 flex-1 overflow-auto p-4 md:p-6">
+					{children}
+				</main>
 			</div>
 		</div>
 	);

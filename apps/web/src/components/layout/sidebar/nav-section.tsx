@@ -3,8 +3,8 @@
 import { ChevronDownIcon } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import type { NavGroup } from "@/types/layout";
 import { NavLink } from "./nav-link";
-import type { NavGroup } from "./types";
 
 interface NavSectionProps {
 	group: NavGroup;
@@ -33,12 +33,19 @@ export function NavSection({ group, pathname, collapsed }: NavSectionProps) {
 				type="button"
 			>
 				<span>{group.label}</span>
-				<ChevronDownIcon className={cn("size-3.5 transition-transform", !open && "-rotate-90")} />
+				<ChevronDownIcon
+					className={cn("size-3.5 transition-transform", !open && "-rotate-90")}
+				/>
 			</button>
 			{open ? (
 				<ul className="mt-1 space-y-0.5">
 					{group.items.map((item) => (
-						<NavLink collapsed={false} item={item} key={item.href} pathname={pathname} />
+						<NavLink
+							collapsed={false}
+							item={item}
+							key={item.href}
+							pathname={pathname}
+						/>
 					))}
 				</ul>
 			) : null}
