@@ -1,20 +1,20 @@
 {
-  "name": "@som-brain-turbo/validators",
-  "type": "module",
-  "exports": {
-    ".": {
-      "default": "./src/index.ts"
-    },
-    "./*": {
-      "default": "./src/*.ts"
-    }
-  },
-  "scripts": {},
-  "dependencies": {
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@som-brain-turbo/config": "workspace:*",
-    "typescript": "catalog:"
-  }
+	"name": "@som-brain-turbo/validators",
+	"type": "module",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"scripts": {},
+	"dependencies": {
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@som-brain-turbo/config": "workspace:*",
+		"typescript": "catalog:"
+	}
 }

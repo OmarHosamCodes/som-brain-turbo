@@ -1,20 +1,20 @@
 {
-  "name": "@som-brain-turbo/state",
-  "type": "module",
-  "exports": {
-    ".": {
-      "default": "./src/index.ts"
-    },
-    "./*": {
-      "default": "./src/*.ts"
-    }
-  },
-  "scripts": {},
-  "dependencies": {
-    "zustand": "^5.0.8"
-  },
-  "devDependencies": {
-    "@som-brain-turbo/config": "workspace:*",
-    "typescript": "catalog:"
-  }
+	"name": "@som-brain-turbo/state",
+	"type": "module",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"scripts": {},
+	"dependencies": {
+		"zustand": "^5.0.8"
+	},
+	"devDependencies": {
+		"@som-brain-turbo/config": "workspace:*",
+		"typescript": "catalog:"
+	}
 }

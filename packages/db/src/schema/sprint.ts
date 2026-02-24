@@ -21,10 +21,7 @@ export const sprintTemplates = createTable(
 			.text()
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 		updatedAt: d
 			.timestamp({ withTimezone: true })
 			.defaultNow()
@@ -34,7 +31,10 @@ export const sprintTemplates = createTable(
 	(t) => [
 		index("sprint_template_org_idx").on(t.organizationId),
 		index("sprint_template_created_by_idx").on(t.createdById),
-		index("sprint_template_org_creator_idx").on(t.organizationId, t.createdById),
+		index("sprint_template_org_creator_idx").on(
+			t.organizationId,
+			t.createdById,
+		),
 	],
 );
 
@@ -54,10 +54,7 @@ export const sprintTemplateSteps = createTable(
 			.references(() => departments.id, { onDelete: "cascade" }),
 		sequenceOrder: d.integer().notNull(),
 		estimate: d.integer(),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 	}),
 	(t) => [
 		index("sprint_template_step_template_idx").on(t.templateId),
@@ -90,10 +87,7 @@ export const sprints = createTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		startedAt: d.timestamp({ withTimezone: true }),
 		completedAt: d.timestamp({ withTimezone: true }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 		updatedAt: d
 			.timestamp({ withTimezone: true })
 			.defaultNow()
@@ -138,10 +132,7 @@ export const sprintTasks = createTable(
 		}),
 		finishedAt: d.timestamp({ withTimezone: true }),
 		finishedById: d.text().references(() => user.id, { onDelete: "set null" }),
-		createdAt: d
-			.timestamp({ withTimezone: true })
-			.defaultNow()
-			.notNull(),
+		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 	}),
 	(t) => [
 		index("sprint_task_sprint_idx").on(t.sprintId),

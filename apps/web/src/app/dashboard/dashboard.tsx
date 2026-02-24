@@ -1,8 +1,8 @@
 "use client";
-import { usePrivateDataQuery, type AuthSession } from "@som-brain-turbo/hooks";
+import { type AuthSession, usePrivateDataQuery } from "@som-brain-turbo/hooks";
 
 export default function Dashboard({ session }: { session: AuthSession }) {
-  const privateData = usePrivateDataQuery();
+	const privateData = usePrivateDataQuery();
 
-  return <p>API: {privateData.data?.message}</p>;
+	return <p>API: {privateData.data?.message}</p>;
 }

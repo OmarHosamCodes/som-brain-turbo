@@ -3,24 +3,24 @@
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import {
-  createAuthFormSlice,
-  type AuthFormMode,
-  type AuthFormSlice,
+	type AuthFormMode,
+	type AuthFormSlice,
+	createAuthFormSlice,
 } from "./slices/auth-form-slice";
 
 export type AppStateStore = AuthFormSlice;
 
 export const useAppStateStore = create<AppStateStore>()((...args) => ({
-  ...createAuthFormSlice(...args),
+	...createAuthFormSlice(...args),
 }));
 
 export const useAuthFormMode = (): AuthFormMode =>
-  useAppStateStore((state) => state.authFormMode);
+	useAppStateStore((state) => state.authFormMode);
 
 export const useAuthFormModeActions = () =>
-  useAppStateStore(
-    useShallow((state) => ({
-      setAuthFormMode: state.setAuthFormMode,
-      toggleAuthFormMode: state.toggleAuthFormMode,
-    })),
-  );
+	useAppStateStore(
+		useShallow((state) => ({
+			setAuthFormMode: state.setAuthFormMode,
+			toggleAuthFormMode: state.toggleAuthFormMode,
+		})),
+	);
