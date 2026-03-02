@@ -17,7 +17,8 @@ const optionalInteger = (min = 0, max = Number.MAX_SAFE_INTEGER) =>
 		z.coerce.number().int().min(min).max(max).optional(),
 	);
 
-const idSchema = z.number().int().positive();
+const idSchema = z.coerce.number().int().positive();
+const optionalIdSchema = optionalInteger(1);
 
 export const listQuerySchema = z.object({
 	includeArchived: z.boolean().optional().default(false),
@@ -54,7 +55,7 @@ export const projectCreateSchema = z.object({
 		.default("#6366f1"),
 	isBillable: z.boolean().default(false),
 	hourlyRate: optionalInteger(0, 1_000_000),
-	clientId: idSchema.optional(),
+	clientId: optionalIdSchema,
 });
 
 export const projectUpdateSchema = z.object({
@@ -66,7 +67,7 @@ export const projectUpdateSchema = z.object({
 		.regex(/^#[0-9A-Fa-f]{6}$/),
 	isBillable: z.boolean(),
 	hourlyRate: optionalInteger(0, 1_000_000),
-	clientId: idSchema.optional(),
+	clientId: optionalIdSchema,
 });
 
 export const taskStatusSchema = z.enum([
