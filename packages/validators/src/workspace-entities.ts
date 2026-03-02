@@ -124,6 +124,10 @@ export const sprintUpdateSchema = z.object({
 	status: sprintStatusSchema,
 });
 
+export const workspaceInviteByEmailSchema = z.object({
+	email: z.string().trim().email().max(256),
+});
+
 export type ListQueryInput = z.infer<typeof listQuerySchema>;
 export type ClientCreateInput = z.infer<typeof clientCreateSchema>;
 export type ClientUpdateInput = z.infer<typeof clientUpdateSchema>;
@@ -133,3 +137,6 @@ export type TaskCreateInput = z.infer<typeof taskCreateSchema>;
 export type TaskUpdateInput = z.infer<typeof taskUpdateSchema>;
 export type SprintCreateInput = z.infer<typeof sprintCreateSchema>;
 export type SprintUpdateInput = z.infer<typeof sprintUpdateSchema>;
+export type WorkspaceInviteByEmailInput = z.infer<
+	typeof workspaceInviteByEmailSchema
+>;

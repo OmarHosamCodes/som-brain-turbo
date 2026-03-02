@@ -11,6 +11,7 @@ export {
 	useTimeEntriesSectionState,
 } from "./use-dashboard-time-tracker";
 export { useHeaderUserState } from "./use-header-user-state";
+export { useMembersCrudState } from "./use-members-crud";
 export { useOrgSwitcherState } from "./use-org-switcher-state";
 export { usePrivateDataQuery } from "./use-private-data-query";
 export { useProjectsCrudState } from "./use-projects-crud";
