@@ -87,6 +87,7 @@ export const sprints = createTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		startedAt: d.timestamp({ withTimezone: true }),
 		completedAt: d.timestamp({ withTimezone: true }),
+		archivedAt: d.timestamp({ withTimezone: true }),
 		createdAt: d.timestamp({ withTimezone: true }).defaultNow().notNull(),
 		updatedAt: d
 			.timestamp({ withTimezone: true })
@@ -100,7 +101,9 @@ export const sprints = createTable(
 		index("sprint_status_idx").on(t.status),
 		index("sprint_template_idx").on(t.templateId),
 		index("sprint_created_by_idx").on(t.createdById),
+		index("sprint_archived_idx").on(t.archivedAt),
 		index("sprint_org_status_idx").on(t.organizationId, t.status),
+		index("sprint_org_archived_idx").on(t.organizationId, t.archivedAt),
 		index("sprint_project_status_idx").on(t.projectId, t.status),
 	],
 );

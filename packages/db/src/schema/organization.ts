@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { index, uniqueIndex } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
@@ -51,6 +52,9 @@ export const organizationMembers = createTable(
 		index("org_member_org_idx").on(t.organizationId),
 		index("org_member_subtype_idx").on(t.subType),
 		index("org_member_org_subtype_idx").on(t.organizationId, t.subType),
+		uniqueIndex("org_member_owner_unique_idx")
+			.on(t.userId)
+			.where(sql`${t.role} = 'owner'`),
 		uniqueIndex("org_member_unique_idx").on(t.userId, t.organizationId),
 	],
 );

@@ -1,5 +1,6 @@
 import { db } from "@som-brain-turbo/db";
 import * as schema from "@som-brain-turbo/db/schema/auth";
+import { ensureOwnedWorkspaceForUser } from "@som-brain-turbo/db/workspace-provisioning";
 import { env } from "@som-brain-turbo/env/server";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -21,6 +22,18 @@ export const auth = betterAuth({
 			prompt: "select_account",
 			clientId: env.GOOGLE_CLIENT_ID,
 			clientSecret: env.GOOGLE_CLIENT_SECRET,
+		},
+	},
+	databaseHooks: {
+		user: {
+			create: {
+				after: async (createdUser) => {
+					await ensureOwnedWorkspaceForUser({
+						userId: createdUser.id,
+						userName: createdUser.name,
+					});
+				},
+			},
 		},
 	},
 	plugins: [nextCookies()],

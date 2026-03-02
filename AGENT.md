@@ -25,6 +25,7 @@ This file defines working conventions for coding agents in this repository.
 - NEVER create more than one component per file
 - NEVER put state, hooks or validators in apps/web. Instead put it in packages/
 - NEVER uses ussState or useEffect. Use zustand
+- ALWAYS implement no props mentality
 - put all types in the types folder in apps/web/src/types/
 
 ## Commands

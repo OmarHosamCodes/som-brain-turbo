@@ -1,15 +1,15 @@
 import { db } from "@som-brain-turbo/db";
 import {
 	mbTickets,
-	organizationMembers,
 	projects,
 	sprints,
 	sprintTasks,
 	tasks,
 	timeEntries,
 } from "@som-brain-turbo/db/schema/index";
+import { resolveOrganizationIdForUser } from "@som-brain-turbo/db/workspace-provisioning";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { protectedProcedure, router } from "../index";
 
@@ -32,37 +32,6 @@ interface TimeEntryRow {
 	taskId: number | null;
 	sprintId: number | null;
 	mbTicketId: number | null;
-}
-
-async function getOrganizationIdForUser(
-	userId: string,
-	requestedOrganizationId: number | null,
-) {
-	if (requestedOrganizationId !== null) {
-		const [requestedMembership] = await db
-			.select({ organizationId: organizationMembers.organizationId })
-			.from(organizationMembers)
-			.where(
-				and(
-					eq(organizationMembers.userId, userId),
-					eq(organizationMembers.organizationId, requestedOrganizationId),
-				),
-			)
-			.limit(1);
-
-		if (requestedMembership) {
-			return requestedMembership.organizationId;
-		}
-	}
-
-	const [fallbackMembership] = await db
-		.select({ organizationId: organizationMembers.organizationId })
-		.from(organizationMembers)
-		.where(eq(organizationMembers.userId, userId))
-		.orderBy(asc(organizationMembers.createdAt))
-		.limit(1);
-
-	return fallbackMembership?.organizationId ?? null;
 }
 
 function parseTargetKey(
@@ -174,29 +143,11 @@ const timeEntrySelect = {
 export const timeTrackerRouter = router({
 	dashboardData: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const organizationId = await getOrganizationIdForUser(
+		const organizationId = await resolveOrganizationIdForUser({
 			userId,
-			ctx.activeOrganizationId,
-		);
-
-		if (!organizationId) {
-			return {
-				targets: [] as TrackerTarget[],
-				activeEntry: null,
-				entries: [] as Array<{
-					id: number;
-					description: string;
-					targetKey: string | null;
-					targetType: TrackerTargetType | null;
-					targetTitle: string | null;
-					projectName: string | null;
-					isBillable: boolean;
-					startTime: string;
-					endTime: string;
-					durationMinutes: number;
-				}>,
-			};
-		}
+			userName: ctx.session.user.name,
+			requestedOrganizationId: ctx.activeOrganizationId,
+		});
 
 		const [taskRows, sprintStepRows, ticketRows, activeRows, completedRows] =
 			await Promise.all([
@@ -232,6 +183,7 @@ export const timeTrackerRouter = router({
 					.where(
 						and(
 							eq(sprints.organizationId, organizationId),
+							isNull(sprints.archivedAt),
 							isNull(tasks.archivedAt),
 							isNull(projects.archivedAt),
 						),
@@ -362,17 +314,11 @@ export const timeTrackerRouter = router({
 		)
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.session.user.id;
-			const organizationId = await getOrganizationIdForUser(
+			const organizationId = await resolveOrganizationIdForUser({
 				userId,
-				ctx.activeOrganizationId,
-			);
-
-			if (!organizationId) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "User is not assigned to any organization.",
-				});
-			}
+				userName: ctx.session.user.name,
+				requestedOrganizationId: ctx.activeOrganizationId,
+			});
 
 			const [runningEntry] = await db
 				.select({ id: timeEntries.id })
@@ -498,6 +444,7 @@ export const timeTrackerRouter = router({
 						eq(sprintTasks.sprintId, parsedTarget.sprintId),
 						eq(sprintTasks.taskId, parsedTarget.taskId),
 						eq(sprints.organizationId, organizationId),
+						isNull(sprints.archivedAt),
 						isNull(tasks.archivedAt),
 						isNull(projects.archivedAt),
 					),
@@ -530,17 +477,11 @@ export const timeTrackerRouter = router({
 
 	stopTimer: protectedProcedure.mutation(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const organizationId = await getOrganizationIdForUser(
+		const organizationId = await resolveOrganizationIdForUser({
 			userId,
-			ctx.activeOrganizationId,
-		);
-
-		if (!organizationId) {
-			throw new TRPCError({
-				code: "FORBIDDEN",
-				message: "User is not assigned to any organization.",
-			});
-		}
+			userName: ctx.session.user.name,
+			requestedOrganizationId: ctx.activeOrganizationId,
+		});
 
 		const [runningEntry] = await db
 			.select({ id: timeEntries.id })
@@ -579,17 +520,11 @@ export const timeTrackerRouter = router({
 
 	discardTimer: protectedProcedure.mutation(async ({ ctx }) => {
 		const userId = ctx.session.user.id;
-		const organizationId = await getOrganizationIdForUser(
+		const organizationId = await resolveOrganizationIdForUser({
 			userId,
-			ctx.activeOrganizationId,
-		);
-
-		if (!organizationId) {
-			throw new TRPCError({
-				code: "FORBIDDEN",
-				message: "User is not assigned to any organization.",
-			});
-		}
+			userName: ctx.session.user.name,
+			requestedOrganizationId: ctx.activeOrganizationId,
+		});
 
 		const [runningEntry] = await db
 			.select({ id: timeEntries.id })

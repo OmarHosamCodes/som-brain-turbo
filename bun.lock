@@ -63,6 +63,7 @@
         "@som-brain-turbo/auth": "workspace:*",
         "@som-brain-turbo/db": "workspace:*",
         "@som-brain-turbo/env": "workspace:*",
+        "@som-brain-turbo/validators": "workspace:*",
         "@trpc/client": "catalog:",
         "@trpc/server": "catalog:",
         "dotenv": "catalog:",
